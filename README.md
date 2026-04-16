@@ -1,4 +1,4 @@
-# 黒髪太郎のAIツール
+# 黒髪太郎のAIツール（無料版）
 
 エンジニアも非エンジニアも使える、ブラウザで即試せるAI活用ツール集。
 インストール不要・完全無料・オフライン動作。
@@ -14,11 +14,6 @@
 | [launchpad.html](./launchpad.html) | Claude Codeの初期セットアップを3クリックでガイド |
 | [prompt-builder.html](./prompt-builder.html) | ChatGPT/Claude向けプロンプトをフォーム入力で生成 |
 | [speak.html](./speak.html) | Claude Code指示文ジェネレーター |
-| [claude-md-gen.html](./claude-md-gen.html) | CLAUDE.mdをフォーム入力で生成・DL |
-| [taskpad.html](./taskpad.html) | Kanbanタスク管理＋Claude Code指示文自動出力 |
-| [persona.html](./persona.html) | Claudeペルソナ管理 |
-| [ctx-share.html](./ctx-share.html) | AIコンテキストをURL共有 |
-| [prompt-builder-v2.html](./prompt-builder-v2.html) | バグ修正/実装/レビュー/リファクタ向け上位版 |
 
 ### CLI
 
@@ -33,15 +28,24 @@
 - **オフライン動作**（外部CDN依存なし）
 - **データローカル保存のみ**（外部送信なし）
 
+## より高機能な有料ツール（BOOTH）
+
+この無料版で物足りなくなった方向けに、BOOTHで以下のツールも販売予定：
+- CLAUDE.md GUIジェネレーター
+- Kanban型タスクパッド＋プロンプト自動生成
+- プロンプトビルダー プロ版（バグ修正・実装・レビュー対応）
+
+詳しくはnote / Xでお知らせします。
+
 ## 作っている人
 
 黒髪太郎（34歳・元会社員→フリーランスエンジニア）
-- [note](https://note.com/)
-- [X (@ganbarun69)](https://x.com/ganbarun69)
+- note：AI副業のリアルを発信
+- X：[@ganbarun69](https://x.com/ganbarun69)
 
 ## ライセンス
 
-MIT（予定）。
+MIT
 
 ## 免責
 
