@@ -1,0 +1,26 @@
+{
+  "name": "token-trim",
+  "version": "1.0.0",
+  "description": "Reduce token count in code/text files for AI context windows",
+  "bin": {
+    "token-trim": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs --target node18 --no-splitting",
+    "dev": "tsx src/index.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "commander": "^12.0.0",
+    "tiktoken": "^1.0.15"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsup": "^8.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

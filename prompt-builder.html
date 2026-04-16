@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<!-- Unofficial tool. Not affiliated with or endorsed by Anthropic, Inc. -->
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude プロンプトビルダー</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3347;
+    --accent: #7c6af7;
+    --accent2: #f97316;
+    --text: #e2e8f0;
+    --muted: #8892aa;
+    --green: #22d3a5;
+    --radius: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', 'Hiragino Sans', sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+  }
+
+  header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  header .logo {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+
+  header h1 { font-size: 16px; font-weight: 600; }
+  header p { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .tabs {
+    display: flex;
+    padding: 16px 24px 0;
+    gap: 4px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tab {
+    padding: 8px 20px;
+    border-radius: var(--radius) var(--radius) 0 0;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    border: 1px solid transparent;
+    border-bottom: none;
+    transition: all 0.15s;
+    user-select: none;
+  }
+
+  .tab.active {
+    background: var(--surface);
+    color: var(--text);
+    border-color: var(--border);
+  }
+
+  .tab:not(.active):hover { color: var(--text); }
+
+  .panel { display: none; padding: 20px 24px; }
+  .panel.active { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+  .fields { display: flex; flex-direction: column; gap: 14px; }
+
+  .field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .field label span {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--muted);
+    text-transform: none;
+    letter-spacing: 0;
+    margin-left: 6px;
+    opacity: 0.7;
+  }
+
+  .field input, .field textarea, .field select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    padding: 10px 12px;
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s;
+    resize: vertical;
+  }
+
+  .field input:focus, .field textarea:focus {
+    border-color: var(--accent);
+  }
+
+  .field textarea { min-height: 72px; }
+  .field textarea.tall { min-height: 110px; }
+
+  ::placeholder { color: var(--muted); opacity: 0.5; }
+
+  .output-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .output-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .output-header h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .btn-row { display: flex; gap: 8px; }
+
+  button {
+    padding: 7px 16px;
+    border-radius: var(--radius);
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn-primary:hover { opacity: 0.85; }
+
+  .btn-secondary {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { border-color: var(--accent); }
+
+  .btn-copy {
+    background: var(--surface2);
+    color: var(--green);
+    border: 1px solid var(--border);
+  }
+  .btn-copy:hover { border-color: var(--green); }
+  .btn-copy.copied { background: var(--green); color: #0f1117; }
+
+  #output-box {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    font-family: 'Cascadia Code', 'Consolas', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--text);
+    white-space: pre-wrap;
+    overflow-y: auto;
+    min-height: 400px;
+    max-height: 70vh;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .badge-claude { background: rgba(124,106,247,0.2); color: var(--accent); }
+  .badge-code { background: rgba(249,115,22,0.2); color: var(--accent2); }
+
+  .tip {
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--surface2);
+    border-left: 3px solid var(--accent);
+    padding: 8px 12px;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    line-height: 1.6;
+  }
+
+  .tip.orange { border-left-color: var(--accent2); }
+
+  .char-count {
+    text-align: right;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  @media (max-width: 768px) {
+    .panel.active { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">⚡</div>
+  <div>
+    <h1>Claude プロンプトビルダー</h1>
+    <p>ClaudeChat / ClaudeCode 向け最適フォーマット生成ツール</p>
+  </div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('chat')">
+    💬 Claude Chat
+    <span class="badge badge-claude" style="margin-left:6px">API / claude.ai</span>
+  </div>
+  <div class="tab" onclick="switchTab('code')">
+    🖥 Claude Code
+    <span class="badge badge-code" style="margin-left:6px">CLI / IDE</span>
+  </div>
+</div>
+
+<!-- ─── Claude Chat パネル ─── -->
+<div id="panel-chat" class="panel active">
+  <div class="fields">
+    <div class="tip">
+      Chat向けは「役割→背景→タスク→制約→出力形式」の順で書くと精度が上がります。
+    </div>
+
+    <div class="field">
+      <label>役割 <span>あなたは〇〇の専門家です</span></label>
+      <textarea id="c-role" placeholder="例：あなたは副業コンサルタントです。18〜35歳の会社員に向けて、実践的なアドバイスをします。" oninput="buildChat()"></textarea>
+    </div>
+
+    <div class="field">
+      <label>背景・コンテキスト <span>状況・前提を共有する</span></label>
+      <textarea id="c-context" placeholder="例：私はnoteで副業系の記事を書いています。現在フォロワーは9人で、まだ認知が広がっていない状態です。" oninput="buildChat()"></textarea>
+    </div>
+
+    <div class="field">
+      <label>タスク <span>何をしてほしいか、具体的に</span></label>
+      <textarea class="tall" id="c-task" placeholder="例：Xに投稿するバズりやすい文章を3パターン作ってください。副業初心者の会社員が共感するような内容で。" oninput="buildChat()"></textarea>
+    </div>
+
+    <div class="field">
+      <label>制約条件 <span>やってはいけないこと、守るべきルール</span></label>
+      <textarea id="c-constraints" placeholder="例：・景品表示法に違反する表現は使わない&#10;・「必ず稼げる」などの断定表現は禁止&#10;・140字以内で収める" oninput="buildChat()"></textarea>
+    </div>
+
+    <div class="field">
+      <label>出力形式 <span>どんな形で返してほしいか</span></label>
+      <textarea id="c-format" placeholder="例：Markdown形式でナンバリングして出力してください。各パターンに「なぜ刺さるか」を1行で添えてください。" oninput="buildChat()"></textarea>
+    </div>
+
+    <div class="field">
+      <label>例（オプション） <span>良い例・悪い例があると精度が上がる</span></label>
+      <textarea id="c-examples" placeholder="例：&#10;【良い例】副業3ヶ月でわかった、稼げない人の共通点5つ。&#10;【悪い例】副業で絶対稼げる方法を教えます。" oninput="buildChat()"></textarea>
+    </div>
+  </div>
+
+  <div class="output-wrap">
+    <div class="output-header">
+      <h3>生成されたプロンプト</h3>
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="clearChat()">クリア</button>
+        <button class="btn-copy" id="btn-copy-chat" onclick="copyOutput('chat')">コピー</button>
+      </div>
+    </div>
+    <div id="output-chat" class="output-box" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;font-family:'Cascadia Code','Consolas',monospace;font-size:12px;line-height:1.7;color:var(--text);white-space:pre-wrap;overflow-y:auto;min-height:400px;max-height:70vh;">
+入力フォームを埋めると、ここにプロンプトが生成されます。</div>
+    <div class="char-count" id="char-chat">0 文字</div>
+  </div>
+</div>
+
+<!-- ─── Claude Code パネル ─── -->
+<div id="panel-code" class="panel">
+  <div class="fields">
+    <div class="tip orange">
+      ClaudeCode向けはファイルパスと「何を→どう変えるか」を具体的に書くと一発で動きます。
+    </div>
+
+    <div class="field">
+      <label>やること <span>1文で端的に</span></label>
+      <input type="text" id="k-task" placeholder="例：fix-compliance-regex.mjs に新しい置換ルールを追加する" oninput="buildCode()">
+    </div>
+
+    <div class="field">
+      <label>対象ファイル <span>パスを具体的に</span></label>
+      <textarea id="k-files" placeholder="例：&#10;scripts/fix-compliance-regex.mjs&#10;data/titles.json（参照のみ）" oninput="buildCode()"></textarea>
+    </div>
+
+    <div class="field">
+      <label>現状 <span>今どうなっているか</span></label>
+      <textarea class="tall" id="k-current" placeholder="例：現在のスクリプトは「確実に稼げる」→「稼げる可能性がある」の置換ルールまで実装されている。&#10;「絶対に」という表現への対処がまだない。" oninput="buildCode()"></textarea>
+    </div>
+
+    <div class="field">
+      <label>期待する結果 <span>どうなっていれば完了か</span></label>
+      <textarea class="tall" id="k-expected" placeholder="例：・「絶対に稼げる」→「稼げるケースもある」の置換が追加されている&#10;・既存のルールは壊れていない&#10;・dry-runで動作確認済み" oninput="buildCode()"></textarea>
+    </div>
+
+    <div class="field">
+      <label>制約・注意事項</label>
+      <textarea id="k-constraints" placeholder="例：・APIキーは不要（Node.js標準のみ使う）&#10;・既存の置換ルールの順序は変えない&#10;・コメントは日本語で書く" oninput="buildCode()"></textarea>
+    </div>
+
+    <div class="field">
+      <label>確認コマンド <span>完了後に実行して検証するコマンド</span></label>
+      <input type="text" id="k-verify" placeholder="例：node scripts/fix-compliance-regex.mjs --dry-run" oninput="buildCode()">
+    </div>
+  </div>
+
+  <div class="output-wrap">
+    <div class="output-header">
+      <h3>生成されたプロンプト</h3>
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="clearCode()">クリア</button>
+        <button class="btn-copy" id="btn-copy-code" onclick="copyOutput('code')">コピー</button>
+      </div>
+    </div>
+    <div id="output-code" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;font-family:'Cascadia Code','Consolas',monospace;font-size:12px;line-height:1.7;color:var(--text);white-space:pre-wrap;overflow-y:auto;min-height:400px;max-height:70vh;">
+入力フォームを埋めると、ここにプロンプトが生成されます。</div>
+    <div class="char-count" id="char-code">0 文字</div>
+  </div>
+</div>
+
+<script>
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', (name === 'chat' && i === 0) || (name === 'code' && i === 1));
+  });
+  document.getElementById('panel-chat').classList.toggle('active', name === 'chat');
+  document.getElementById('panel-code').classList.toggle('active', name === 'code');
+}
+
+function val(id) { return (document.getElementById(id)?.value || '').trim(); }
+
+function buildChat() {
+  const role        = val('c-role');
+  const context     = val('c-context');
+  const task        = val('c-task');
+  const constraints = val('c-constraints');
+  const format      = val('c-format');
+  const examples    = val('c-examples');
+
+  const sections = [];
+
+  if (role)        sections.push(`## 役割\n${role}`);
+  if (context)     sections.push(`## 背景・コンテキスト\n${context}`);
+  if (task)        sections.push(`## タスク\n${task}`);
+  if (constraints) sections.push(`## 制約条件\n${constraints}`);
+  if (format)      sections.push(`## 出力形式\n${format}`);
+  if (examples)    sections.push(`## 例\n${examples}`);
+
+  const out = sections.length
+    ? sections.join('\n\n')
+    : '入力フォームを埋めると、ここにプロンプトが生成されます。';
+
+  document.getElementById('output-chat').textContent = out;
+  document.getElementById('char-chat').textContent = out.length + ' 文字';
+}
+
+function buildCode() {
+  const task        = val('k-task');
+  const files       = val('k-files');
+  const current     = val('k-current');
+  const expected    = val('k-expected');
+  const constraints = val('k-constraints');
+  const verify      = val('k-verify');
+
+  const sections = [];
+
+  if (task)        sections.push(`## やること\n${task}`);
+  if (files)       sections.push(`## 対象ファイル\n${files}`);
+  if (current)     sections.push(`## 現状\n${current}`);
+  if (expected)    sections.push(`## 期待する結果\n${expected}`);
+  if (constraints) sections.push(`## 制約・注意事項\n${constraints}`);
+  if (verify)      sections.push(`## 完了確認コマンド\n${verify}`);
+
+  const out = sections.length
+    ? sections.join('\n\n')
+    : '入力フォームを埋めると、ここにプロンプトが生成されます。';
+
+  document.getElementById('output-code').textContent = out;
+  document.getElementById('char-code').textContent = out.length + ' 文字';
+}
+
+function copyOutput(type) {
+  const el  = document.getElementById('output-' + type);
+  const btn = document.getElementById('btn-copy-' + type);
+  const text = el.textContent;
+
+  const showCopied = () => {
+    btn.textContent = '✓ コピー済み';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'コピー';
+      btn.classList.remove('copied');
+    }, 2000);
+  };
+
+  const fallbackCopy = () => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    if (ok) showCopied();
+    else {
+      btn.textContent = '✗ コピー失敗';
+      setTimeout(() => { btn.textContent = 'コピー'; }, 2000);
+    }
+  };
+
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(showCopied).catch(fallbackCopy);
+  } else {
+    fallbackCopy();
+  }
+}
+
+function clearChat() {
+  ['c-role','c-context','c-task','c-constraints','c-format','c-examples']
+    .forEach(id => document.getElementById(id).value = '');
+  buildChat();
+}
+
+function clearCode() {
+  ['k-task','k-files','k-current','k-expected','k-constraints','k-verify']
+    .forEach(id => document.getElementById(id).value = '');
+  buildCode();
+}
+</script>
+
+</body>
+</html>
