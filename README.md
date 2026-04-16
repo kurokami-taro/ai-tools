@@ -40,7 +40,7 @@
 ## 作っている人
 
 黒髪太郎（34歳・元会社員→フリーランスエンジニア）
-- note：AI副業のリアルを発信
+- [note](https://note.com/kurokami_tarou)：AI副業のリアルを発信
 - X：[@ganbarun69](https://x.com/ganbarun69)
 
 ## ライセンス
